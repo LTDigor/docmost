@@ -43,18 +43,18 @@ import AppVersion from "@/components/settings/app-version.tsx";
 import { mobileSidebarAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
 import { useSettingsNavigation } from "@/hooks/use-settings-navigation";
+import {
+  filterSettingsNavigationGroups,
+  type SettingsNavigationGroup,
+  type SettingsNavigationItem,
+} from "@/components/settings/settings-navigation";
 
-type DataItem = {
+type DataItem = SettingsNavigationItem & {
   label: string;
   icon: React.ElementType;
-  path: string;
-  feature?: string;
-  role?: "admin" | "owner";
-  env?: "cloud" | "selfhosted";
 };
 
-type DataGroup = {
-  heading: string;
+type DataGroup = SettingsNavigationGroup & {
   items: DataItem[];
 };
 
@@ -144,7 +144,7 @@ export default function SettingsSidebar() {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
   const { goBack } = useSettingsNavigation();
-  const { isAdmin, isOwner } = useUserRole();
+  const { isAdmin, isOwner, isMember } = useUserRole();
   const [entitlements] = useAtom(entitlementAtom);
   const upgradeLabel = useUpgradeLabel();
   const [mobileSidebarOpened] = useAtom(mobileSidebarAtom);
@@ -157,34 +157,25 @@ export default function SettingsSidebar() {
   const hasFeature = (f: string) =>
     entitlements?.features?.includes(f) ?? false;
 
-  const canShowItem = (item: DataItem) => {
-    if (item.env === "cloud" && !isCloud()) return false;
-    if (item.env === "selfhosted" && isCloud()) return false;
-    if (item.role === "admin" && !isAdmin) return false;
-    if (item.role === "owner" && !isOwner) return false;
-    return true;
-  };
-
   const isItemDisabled = (item: DataItem) => {
     if (!item.feature) return false;
     return !hasFeature(item.feature);
   };
 
-  const menuItems = groupedData.map((group) => {
-    if (group.heading === "System" && (!isAdmin || isCloud())) {
-      return null;
-    }
+  const visibleGroups = filterSettingsNavigationGroups(groupedData, {
+    isAdmin,
+    isOwner,
+    isMember,
+    isCloud: isCloud(),
+  }) as DataGroup[];
 
+  const menuItems = visibleGroups.map((group) => {
     return (
       <div key={group.heading}>
         <Text c="dimmed" className={classes.linkHeader}>
           {t(group.heading)}
         </Text>
         {group.items.map((item) => {
-          if (!canShowItem(item)) {
-            return null;
-          }
-
           let prefetchHandler: any;
           switch (item.label) {
             case "Members":

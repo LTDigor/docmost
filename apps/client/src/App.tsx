@@ -46,6 +46,18 @@ import FavoritesPage from "@/pages/favorites/favorites-page";
 import AiChat from "@/ee/ai-chat/pages/ai-chat.tsx";
 import VerifyEmail from "@/ee/pages/verify-email.tsx";
 import LabelPage from "@/pages/label/label-page";
+import useUserRole from "@/hooks/use-user-role.tsx";
+import type { ReactElement } from "react";
+
+function WorkspaceSettingsRoute({ children }: { children: ReactElement }) {
+  const { isMember } = useUserRole();
+
+  if (isMember) {
+    return <Navigate to="/settings/account/profile" replace />;
+  }
+
+  return children;
+}
 
 export default function App() {
   const { t } = useTranslation();
@@ -113,20 +125,122 @@ export default function App() {
               element={<AccountPreferences />}
             />
             <Route path={"account/api-keys"} element={<UserApiKeys />} />
-            <Route path={"workspace"} element={<WorkspaceSettings />} />
-            <Route path={"members"} element={<WorkspaceMembers />} />
-            <Route path={"api-keys"} element={<WorkspaceApiKeys />} />
-            <Route path={"groups"} element={<Groups />} />
-            <Route path={"groups/:groupId"} element={<GroupInfo />} />
-            <Route path={"spaces"} element={<Spaces />} />
-            <Route path={"sharing"} element={<Shares />} />
-            <Route path={"security"} element={<Security />} />
-            <Route path={"ai"} element={<AiSettings />} />
-            <Route path={"ai/mcp"} element={<AiSettings />} />
-            <Route path={"audit"} element={<AuditLogs />} />
-            <Route path={"verifications"} element={<VerifiedPages />} />
-            {!isCloud() && <Route path={"license"} element={<License />} />}
-            {isCloud() && <Route path={"billing"} element={<Billing />} />}
+            <Route
+              path={"workspace"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <WorkspaceSettings />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"members"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <WorkspaceMembers />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"api-keys"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <WorkspaceApiKeys />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"groups"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <Groups />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"groups/:groupId"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <GroupInfo />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"spaces"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <Spaces />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"sharing"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <Shares />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"security"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <Security />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"ai"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <AiSettings />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"ai/mcp"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <AiSettings />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"audit"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <AuditLogs />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            <Route
+              path={"verifications"}
+              element={
+                <WorkspaceSettingsRoute>
+                  <VerifiedPages />
+                </WorkspaceSettingsRoute>
+              }
+            />
+            {!isCloud() && (
+              <Route
+                path={"license"}
+                element={
+                  <WorkspaceSettingsRoute>
+                    <License />
+                  </WorkspaceSettingsRoute>
+                }
+              />
+            )}
+            {isCloud() && (
+              <Route
+                path={"billing"}
+                element={
+                  <WorkspaceSettingsRoute>
+                    <Billing />
+                  </WorkspaceSettingsRoute>
+                }
+              />
+            )}
           </Route>
         </Route>
 
