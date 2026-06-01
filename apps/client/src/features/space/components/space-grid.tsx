@@ -7,7 +7,6 @@ import {
 import { getSpaceUrl } from "@/lib/config.ts";
 import { Link } from "react-router-dom";
 import classes from "./space-grid.module.css";
-import { formatMemberCount } from "@/lib";
 import { useTranslation } from "react-i18next";
 import { IconArrowRight } from "@tabler/icons-react";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
@@ -17,10 +16,10 @@ import { useFavoriteIds } from "@/features/favorite/queries/favorite-query";
 
 export default function SpaceGrid() {
   const { t } = useTranslation();
-  const { data, isLoading } = useGetSpacesQuery({ limit: 10 });
+  const { data } = useGetSpacesQuery({ limit: 10 });
   const spaceFavoriteIds = useFavoriteIds("space");
 
-  const cards = data?.items.slice(0, 6).map((space, index) => (
+  const cards = data?.items.slice(0, 6).map((space) => (
     <Card
       key={space.id}
       p="xs"
@@ -48,10 +47,6 @@ export default function SpaceGrid() {
 
       <Text fz="md" fw={500} mt="xs" className={classes.title}>
         {space.name}
-      </Text>
-
-      <Text c="dimmed" size="xs" fw={700} mt="md">
-        {formatMemberCount(space.memberCount, t)}
       </Text>
     </Card>
   ));
