@@ -58,7 +58,7 @@ type DataGroup = SettingsNavigationGroup & {
   items: DataItem[];
 };
 
-const groupedData: DataGroup[] = [
+export const groupedData: DataGroup[] = [
   {
     heading: "Account",
     items: [
@@ -92,7 +92,6 @@ const groupedData: DataGroup[] = [
         label: "Security & SSO",
         icon: IconLock,
         path: "/settings/security",
-        feature: Feature.SECURITY_SETTINGS,
         role: "admin",
       },
       { label: "Groups", icon: IconUsersGroup, path: "/settings/groups" },

@@ -1,8 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   filterSettingsNavigationGroups,
   type SettingsNavigationGroup,
 } from "./settings-navigation";
+import { groupedData } from "./settings-sidebar";
+
+vi.mock("@/main.tsx", () => ({
+  queryClient: {
+    prefetchQuery: vi.fn(),
+  },
+}));
 
 const Icon = () => null;
 
@@ -68,5 +75,18 @@ describe("filterSettingsNavigationGroups", () => {
     expect(visibleGroups.some((group) => group.heading === "Workspace")).toBe(
       true,
     );
+  });
+
+  it("keeps Security & SSO visible to admins without a paid feature gate", () => {
+    const workspaceGroup = groupedData.find((group) => group.heading === "Workspace");
+    const securityItem = workspaceGroup?.items.find(
+      (item) => item.label === "Security & SSO",
+    );
+
+    expect(securityItem).toMatchObject({
+      path: "/settings/security",
+      role: "admin",
+    });
+    expect(securityItem?.feature).toBeUndefined();
   });
 });

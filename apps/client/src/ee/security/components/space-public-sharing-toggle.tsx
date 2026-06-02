@@ -6,9 +6,6 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ISpace } from "@/features/space/types/space.types.ts";
 import { useUpdateSpaceMutation } from "@/features/space/queries/space-query.ts";
-import { useHasFeature } from "@/ee/hooks/use-feature.ts";
-import { Feature } from "@/ee/features.ts";
-import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label.ts";
 
 type SpacePublicSharingToggleProps = {
   space: ISpace;
@@ -20,9 +17,6 @@ export default function SpacePublicSharingToggle({
   const { t } = useTranslation();
   const [workspace] = useAtom(workspaceAtom);
   const workspaceDisabled = workspace?.settings?.sharing?.disabled === true;
-  const hasSharingControls = useHasFeature(Feature.SHARING_CONTROLS);
-  const upgradeLabel = useUpgradeLabel();
-  const isDisabled = !hasSharingControls || workspaceDisabled;
   const [checked, setChecked] = useState(
     space.settings?.sharing?.disabled === true,
   );
@@ -74,14 +68,14 @@ export default function SpacePublicSharingToggle({
         </Text>
       </div>
       <Tooltip
-        label={!hasSharingControls ? upgradeLabel : t("Public sharing is disabled at the workspace level")}
-        disabled={!isDisabled}
+        label={t("Public sharing is disabled at the workspace level")}
+        disabled={!workspaceDisabled}
         refProp="rootRef"
       >
         <Switch
           checked={checked}
           onChange={handleChange}
-          disabled={isDisabled}
+          disabled={workspaceDisabled}
           aria-label={t("Toggle space public sharing")}
         />
       </Tooltip>

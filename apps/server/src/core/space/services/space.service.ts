@@ -134,24 +134,10 @@ export class SpaceService {
       }
     }
 
-    if (
-      typeof updateSpaceDto.disablePublicSharing !== 'undefined' ||
-      typeof updateSpaceDto.allowViewerComments !== 'undefined'
-    ) {
+    if (typeof updateSpaceDto.allowViewerComments !== 'undefined') {
       const workspace = await this.workspaceRepo.findById(workspaceId, {
         withLicenseKey: true,
       });
-
-      if (
-        typeof updateSpaceDto.disablePublicSharing !== 'undefined' &&
-        !this.licenseCheckService.hasFeature(
-          workspace.licenseKey,
-          Feature.SECURITY_SETTINGS,
-          workspace.plan,
-        )
-      ) {
-        throw new ForbiddenException('This feature requires a valid license');
-      }
 
       if (
         typeof updateSpaceDto.allowViewerComments !== 'undefined' &&
