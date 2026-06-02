@@ -138,7 +138,7 @@ function PageByline({ creator, contributors, readOnly }: PageBylineProps) {
       className={clsx("print-hide", classes.byline)}
       style={{ marginTop: "-0.5em" }}
     >
-      {creator && (
+      {!readOnly && creator && (
         <Popover position="bottom-start" shadow="md" width={280} withArrow>
           <Popover.Target>
             <UnstyledButton
