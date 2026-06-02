@@ -168,19 +168,19 @@ export function NodeMenu({ node, canEdit }: NodeMenuProps) {
             {isFavorited ? t("Remove from favorites") : t("Add to favorites")}
           </Menu.Item>
 
-          <Menu.Item
-            leftSection={<IconFileExport size={16} />}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              openExportModal();
-            }}
-          >
-            {t("Export page")}
-          </Menu.Item>
-
           {canEdit && (
             <>
+              <Menu.Item
+                leftSection={<IconFileExport size={16} />}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openExportModal();
+                }}
+              >
+                {t("Export page")}
+              </Menu.Item>
+
               <Menu.Item
                 leftSection={<IconCopy size={16} />}
                 onClick={(e) => {
@@ -248,12 +248,14 @@ export function NodeMenu({ node, canEdit }: NodeMenuProps) {
         open={copyPageModalOpened}
       />
 
-      <ExportModal
-        type="page"
-        id={node.id}
-        open={exportOpened}
-        onClose={closeExportModal}
-      />
+      {canEdit && (
+        <ExportModal
+          type="page"
+          id={node.id}
+          open={exportOpened}
+          onClose={closeExportModal}
+        />
+      )}
     </>
   );
 }
