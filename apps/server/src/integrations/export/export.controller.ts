@@ -62,7 +62,7 @@ export class ExportController {
       throw new NotFoundException('Page not found');
     }
 
-    await this.pageAccessService.validateCanView(page, user);
+    await this.pageAccessService.validateCanEdit(page, user);
 
     const result = await this.exportService.exportPages(
       dto.pageId,

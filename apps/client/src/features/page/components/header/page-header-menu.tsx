@@ -303,12 +303,14 @@ function PageActionMenu({ readOnly }: PageActionMenuProps) {
             </Menu.Item>
           )}
 
-          <Menu.Item
-            leftSection={<IconFileExport size={16} />}
-            onClick={openExportModal}
-          >
-            {t("Export")}
-          </Menu.Item>
+          {!readOnly && (
+            <Menu.Item
+              leftSection={<IconFileExport size={16} />}
+              onClick={openExportModal}
+            >
+              {t("Export")}
+            </Menu.Item>
+          )}
 
           <Menu.Item
             leftSection={<IconPrinter size={16} />}
@@ -367,12 +369,14 @@ function PageActionMenu({ readOnly }: PageActionMenuProps) {
         </Menu.Dropdown>
       </Menu>
 
-      <ExportModal
-        type="page"
-        id={page.id}
-        open={exportOpened}
-        onClose={closeExportModal}
-      />
+      {!readOnly && (
+        <ExportModal
+          type="page"
+          id={page.id}
+          open={exportOpened}
+          onClose={closeExportModal}
+        />
+      )}
 
       <MovePageModal
         pageId={page.id}
