@@ -61,9 +61,10 @@ jobs:
       - name: Run deploy
         run: |
           set -euo pipefail
+          image="${{ env.DOCMOST_IMAGE }}:${{ github.sha }}"
           ssh \
             -i ~/.ssh/docmost_deploy \
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             "${{ secrets.DOCMOST_DEPLOY_USER }}@${{ secrets.DOCMOST_DEPLOY_HOST }}" \
-            /usr/local/sbin/deploy-docmost-from-github
+            "DOCMOST_IMAGE=${image} /usr/local/sbin/deploy-docmost-from-github"
