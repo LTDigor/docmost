@@ -17,6 +17,7 @@ permissions:
 
 env:
   DOCMOST_IMAGE: ghcr.io/ltdigor/docmost
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
