@@ -1,0 +1,37 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Docmost to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Install SSH key
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DOCMOST_DEPLOY_SSH_KEY }}" > ~/.ssh/docmost_deploy
+          chmod 600 ~/.ssh/docmost_deploy
+          ssh-keyscan -H "${{ secrets.DOCMOST_DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Run deploy
+        run: |
+          set -euo pipefail
+          ssh \
+            -i ~/.ssh/docmost_deploy \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DOCMOST_DEPLOY_USER }}@${{ secrets.DOCMOST_DEPLOY_HOST }}" \
+            /usr/local/sbin/deploy-docmost-from-github

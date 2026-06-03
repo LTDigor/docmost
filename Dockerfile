@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm build
+RUN NODE_OPTIONS=--max-old-space-size=1536 pnpm exec nx run-many -t build --parallel=1
 
 FROM base AS installer
 
