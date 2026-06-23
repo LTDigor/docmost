@@ -67,4 +67,4 @@ jobs:
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             "${{ secrets.DOCMOST_DEPLOY_USER }}@${{ secrets.DOCMOST_DEPLOY_HOST }}" \
-            "docker login ghcr.io -u '${{ github.actor }}' --password-stdin >/dev/null && DOCMOST_IMAGE=${image} /usr/local/sbin/deploy-docmost-from-github"
+            "DOCMOST_IMAGE=${image} /usr/local/sbin/deploy-docmost-from-github"
