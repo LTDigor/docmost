@@ -62,9 +62,9 @@ jobs:
         run: |
           set -euo pipefail
           image="${{ env.DOCMOST_IMAGE }}:${{ github.sha }}"
-          ssh \
+          printf '%s\n' "${{ secrets.GITHUB_TOKEN }}" | ssh \
             -i ~/.ssh/docmost_deploy \
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             "${{ secrets.DOCMOST_DEPLOY_USER }}@${{ secrets.DOCMOST_DEPLOY_HOST }}" \
-            "DOCMOST_IMAGE=${image} /usr/local/sbin/deploy-docmost-from-github"
+            "docker login ghcr.io -u '${{ github.actor }}' --password-stdin >/dev/null && DOCMOST_IMAGE=${image} /usr/local/sbin/deploy-docmost-from-github"
