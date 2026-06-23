@@ -28,10 +28,6 @@ Production deployment is handled by GitHub Actions:
 Do not deploy this fork manually unless the current task explicitly asks for a
 manual production operation.
 
-Invitation email subjects use `MAIL_FROM_NAME` as the organization name. In
-production this should stay `OfferCore`, so invites read
-`OfferCore invited you to Docmost` no matter which admin created the invite.
-
 ## Getting started
 
 To get started with Docmost, please refer to our [documentation](https://docmost.com/docs) or try our [cloud version](https://docmost.com/pricing) .

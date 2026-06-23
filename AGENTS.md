@@ -16,9 +16,6 @@ This checkout is the OfferCore production fork of Docmost:
   unless the current user turn explicitly asks for that live action.
 - Do not claim a production change is live until the GitHub Actions deploy and
   the production health checks have succeeded.
-- Invitation email subjects must use the configured organization name from
-  `MAIL_FROM_NAME`; do not hardcode `OfferCore` in the mail subject and do not
-  use the inviting admin's profile name as the organization name.
 
 ## Local Work
 
