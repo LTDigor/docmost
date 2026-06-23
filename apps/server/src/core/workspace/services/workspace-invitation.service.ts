@@ -458,7 +458,7 @@ export class WorkspaceInvitationService {
     invitationId: string,
     inviteeEmail: string,
     inviteToken: string,
-    invitedByName: string,
+    _invitedByName: string,
     hostname?: string,
   ): Promise<void> {
     const inviteLink = await this.buildInviteLink({
@@ -473,7 +473,7 @@ export class WorkspaceInvitationService {
 
     await this.mailService.sendToQueue({
       to: inviteeEmail,
-      subject: `${invitedByName} invited you to Docmost`,
+      subject: `${this.environmentService.getMailFromName()} invited you to Docmost`,
       template: emailTemplate,
     });
   }

@@ -10,6 +10,28 @@
 </div>
 <br />
 
+## OfferCore fork
+
+This repository is the OfferCore production fork of Docmost:
+`https://github.com/LTDigor/docmost`.
+
+Production deployment is handled by GitHub Actions:
+
+- `.github/workflows/deploy-production.yml` runs on pushes to `main` and
+  `master`, and can also be started manually with `workflow_dispatch`.
+- The workflow builds and pushes `ghcr.io/ltdigor/docmost:<commit-sha>` and
+  `ghcr.io/ltdigor/docmost:main`.
+- After pushing the image, the workflow connects to the production VPS with the
+  `DOCMOST_DEPLOY_*` GitHub secrets and runs
+  `/usr/local/sbin/deploy-docmost-from-github`.
+
+Do not deploy this fork manually unless the current task explicitly asks for a
+manual production operation.
+
+Invitation email subjects use `MAIL_FROM_NAME` as the organization name. In
+production this should stay `OfferCore`, so invites read
+`OfferCore invited you to Docmost` no matter which admin created the invite.
+
 ## Getting started
 
 To get started with Docmost, please refer to our [documentation](https://docmost.com/docs) or try our [cloud version](https://docmost.com/pricing) .
@@ -59,4 +81,3 @@ Special thanks to;
 <img width="48" alt="Algolia-mark-square-white" src="https://github.com/user-attachments/assets/6ccad04a-9589-4965-b6a1-d5cb1f4f9e94" />
 
 [Algolia](https://www.algolia.com/) for providing full-text search to the docs.
-
