@@ -1,79 +1,36 @@
-<div align="center">
-    <h1><b>Docmost</b></h1>
-    <p>
-        Open-source collaborative wiki and documentation software.
-        <br />
-        <a href="https://docmost.com"><strong>Website</strong></a> | 
-        <a href="https://docmost.com/docs"><strong>Documentation</strong></a> |
-        <a href="https://twitter.com/DocmostHQ"><strong>Twitter / X</strong></a>
-    </p>
-</div>
-<br />
+# Docmost
 
-## OfferCore fork
+OfferCore production fork of Docmost.
 
-This repository is the OfferCore production fork of Docmost:
-`https://github.com/LTDigor/docmost`.
+Upstream project: `https://docmost.com`
 
-Production deployment is handled by GitHub Actions:
+## Fork Notes
 
-- `.github/workflows/deploy-production.yml` runs on pushes to `main` and
-  `master`, and can also be started manually with `workflow_dispatch`.
-- The workflow builds and pushes `ghcr.io/ltdigor/docmost:<commit-sha>` and
-  `ghcr.io/ltdigor/docmost:main`.
-- After pushing the image, the workflow connects to the production VPS with the
-  `DOCMOST_DEPLOY_*` GitHub secrets and runs
+- GitHub repository: `https://github.com/LTDigor/docmost`
+- Production deploy workflow: `.github/workflows/deploy-production.yml`
+- Pushes to `main` or `master` build and push Docker images to
+  `ghcr.io/ltdigor/docmost`.
+- The deploy workflow updates the VPS through
   `/usr/local/sbin/deploy-docmost-from-github`.
+- Swagger UI: `/api-docs`
+- Raw OpenAPI JSON: `/api-docs-json`
 
 Do not deploy this fork manually unless the current task explicitly asks for a
 manual production operation.
 
-## Getting started
+Invitation email subjects use `MAIL_FROM_NAME` as the organization name. In
+production this should stay `OfferCore`.
 
-To get started with Docmost, please refer to our [documentation](https://docmost.com/docs) or try our [cloud version](https://docmost.com/pricing) .
+## Development
 
-## Features
+```bash
+pnpm install
+pnpm dev
+pnpm build
+pnpm test
+```
 
-- Real-time collaboration
-- Diagrams (Draw.io, Excalidraw and Mermaid)
-- Spaces
-- Permissions management
-- Groups
-- Comments
-- Page history
-- Search
-- File attachments
-- Embeds (Airtable, Loom, Miro and more)
-- Translations (10+ languages)
+## License
 
-### Screenshots
-
-<p align="center">
-<img alt="home" src="https://docmost.com/screenshots/home.png" width="70%">
-<img alt="editor" src="https://docmost.com/screenshots/editor.png" width="70%">
-</p>
-
-### License
-Docmost core is licensed under the open-source AGPL 3.0 license.  
-Enterprise features are available under an enterprise license (Enterprise Edition).  
-
-All files in the following directories are licensed under the Docmost Enterprise license defined in `packages/ee/License`.
-  - apps/server/src/ee
-  - apps/client/src/ee
-  - packages/ee
-
-### Contributing
-
-See the [development documentation](https://docmost.com/docs/self-hosting/development)
-
-## Thanks
-Special thanks to;
-
-<img width="100" alt="Crowdin" src="https://github.com/user-attachments/assets/a6c3d352-e41b-448d-b6cd-3fbca3109f07" />
-
-[Crowdin](https://crowdin.com/) for providing access to their localization platform.
-
-
-<img width="48" alt="Algolia-mark-square-white" src="https://github.com/user-attachments/assets/6ccad04a-9589-4965-b6a1-d5cb1f4f9e94" />
-
-[Algolia](https://www.algolia.com/) for providing full-text search to the docs.
+Docmost core is AGPL-3.0. Enterprise directories follow the license in
+`packages/ee/License`.

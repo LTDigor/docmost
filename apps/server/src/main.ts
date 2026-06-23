@@ -5,6 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { Logger, NotFoundException, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { TransformHttpResponseInterceptor } from './common/interceptors/http-response.interceptor';
 import { WsRedisIoAdapter } from './ws/adapter/ws-redis.adapter';
@@ -40,6 +41,17 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api', {
     exclude: ['robots.txt', 'share/:shareId/p/:pageSlug', 'mcp'],
+  });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Docmost API')
+    .setDescription('OfferCore Docmost API documentation')
+    .setVersion('0.90.1')
+    .addBearerAuth()
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api-docs', app, swaggerDocument, {
+    jsonDocumentUrl: 'api-docs-json',
   });
 
   const reflector = app.get(Reflector);
