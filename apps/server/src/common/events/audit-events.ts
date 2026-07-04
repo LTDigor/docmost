@@ -23,6 +23,14 @@ export const AuditEvent = {
   API_KEY_UPDATED: 'api_key.updated',
   API_KEY_DELETED: 'api_key.deleted',
 
+  // MCP
+  MCP_TOKEN_CREATED: 'mcp.token_created',
+  MCP_TOKEN_REVOKED: 'mcp.token_revoked',
+  MCP_SEARCH: 'mcp.search',
+  MCP_PAGE_READ: 'mcp.page_read',
+  MCP_AUTH_FAILED: 'mcp.auth_failed',
+  MCP_RATE_LIMITED: 'mcp.rate_limited',
+
   // SCIM Tokens
   SCIM_TOKEN_CREATED: 'scim_token.created',
   SCIM_TOKEN_UPDATED: 'scim_token.updated',
@@ -124,6 +132,7 @@ export const AuditResource = {
   COMMENT: 'comment',
   SHARE: 'share',
   API_KEY: 'api_key',
+  MCP_TOKEN: 'mcp_token',
   SCIM_TOKEN: 'scim_token',
   SSO_PROVIDER: 'sso_provider',
   WORKSPACE_INVITATION: 'workspace_invitation',
@@ -134,7 +143,7 @@ export const AuditResource = {
 export type AuditResourceType =
   (typeof AuditResource)[keyof typeof AuditResource];
 
-export type ActorType = 'user' | 'system' | 'api_key';
+export type ActorType = 'user' | 'system' | 'api_key' | 'mcp_token';
 
 export interface AuditLogPayload {
   event: AuditEventType;

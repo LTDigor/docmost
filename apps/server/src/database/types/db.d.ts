@@ -42,6 +42,22 @@ export interface ApiKeys {
   workspaceId: string;
 }
 
+export interface McpAccessTokens {
+  allowedSpaceIds: Json | null;
+  createdAt: Generated<Timestamp>;
+  creatorId: string;
+  deletedAt: Timestamp | null;
+  expiresAt: Timestamp | null;
+  id: Generated<string>;
+  lastUsedAt: Timestamp | null;
+  name: string;
+  revokedAt: Timestamp | null;
+  tokenHash: string;
+  tokenLastFour: string;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
 export interface Attachments {
   aiChatId: string | null;
   createdAt: Generated<Timestamp>;
@@ -605,6 +621,7 @@ export interface DB {
   groups: Groups;
   groupUsers: GroupUsers;
   labels: Labels;
+  mcpAccessTokens: McpAccessTokens;
   notifications: Notifications;
   pageAccess: PageAccess;
   pageTransclusionReferences: PageTransclusionReferences;

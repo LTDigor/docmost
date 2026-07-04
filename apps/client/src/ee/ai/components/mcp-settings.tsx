@@ -1,5 +1,6 @@
 import {
   Anchor,
+  Divider,
   Group,
   List,
   Text,
@@ -16,21 +17,23 @@ import React, { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { updateWorkspace } from "@/features/workspace/services/workspace-service.ts";
 import { notifications } from "@mantine/notifications";
-import { useHasFeature } from "@/ee/hooks/use-feature";
-import { Feature } from "@/ee/features";
-import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { getAppUrl } from "@/lib/config.ts";
 import { IconCheck, IconCopy, IconInfoCircle } from "@tabler/icons-react";
 import { CopyButton } from "@/components/common/copy-button.tsx";
+import { MCP_READONLY_TOOLS } from "@/ee/ai/mcp-tools";
+import { McpTokenManager } from "@/ee/mcp/components/mcp-token-manager";
+import { useMcpConfigQuery } from "@/ee/mcp/queries/mcp-token-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function McpSettings() {
   const { t } = useTranslation();
   const [workspace, setWorkspace] = useAtom(workspaceAtom);
-  const [checked, setChecked] = useState(workspace?.settings?.ai?.mcp);
-  const hasAccess = useHasFeature(Feature.MCP);
-  const upgradeLabel = useUpgradeLabel();
+  const [checked, setChecked] = useState(Boolean(workspace?.settings?.ai?.mcp));
+  const queryClient = useQueryClient();
+  const { data: config } = useMcpConfigQuery();
 
-  const mcpUrl = `${getAppUrl()}/mcp`;
+  const mcpUrl = config?.endpoint || `${getAppUrl()}/mcp`;
+  const serverEnabled = config?.serverEnabled ?? false;
 
   const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked;
@@ -38,6 +41,7 @@ export default function McpSettings() {
       const updatedWorkspace = await updateWorkspace({ mcpEnabled: value });
       setChecked(value);
       setWorkspace(updatedWorkspace);
+      queryClient.invalidateQueries({ queryKey: ["mcp-config"] });
     } catch (err) {
       notifications.show({
         message: err?.response?.data?.message,
@@ -48,10 +52,14 @@ export default function McpSettings() {
 
   return (
     <Stack gap="lg">
-      {!hasAccess && (
-        <Alert icon={<IconInfoCircle />} title={upgradeLabel} color="blue">
+      {!serverEnabled && (
+        <Alert
+          icon={<IconInfoCircle />}
+          title={t("MCP disabled by server config")}
+          color="yellow"
+        >
           {t(
-            "MCP is only available in the Docmost enterprise edition. Contact sales@docmost.com.",
+            "Set MCP_SERVER_ENABLED=true on the server before workspace MCP tokens can be used.",
           )}
         </Alert>
       )}
@@ -61,22 +69,32 @@ export default function McpSettings() {
           <Text size="md">{t("Model Context Protocol (MCP)")}</Text>
           <Text size="sm" c="dimmed">
             {t(
-              "Enable the MCP server to allow AI assistants and tools to interact with your workspace content.",
+              "Enable read-only MCP access for external AI agents to use visible workspace pages as context.",
             )}{" "}
             <Trans
               i18nKey="View the <anchor>MCP documentation</anchor>."
               components={{
-                anchor: <Anchor href="https://docmost.com/docs/user-guide/mcp" target="_blank" size="sm" />,
+                anchor: (
+                  <Anchor
+                    href="https://docmost.com/docs/user-guide/mcp"
+                    target="_blank"
+                    size="sm"
+                  />
+                ),
               }}
             />
           </Text>
         </div>
 
-        <Tooltip label={upgradeLabel} disabled={hasAccess} refProp="rootRef">
+        <Tooltip
+          label={t("MCP is disabled by server config")}
+          disabled={serverEnabled}
+          refProp="rootRef"
+        >
           <Switch
-            defaultChecked={checked}
+            checked={checked}
             onChange={handleChange}
-            disabled={!hasAccess}
+            disabled={!serverEnabled}
           />
         </Tooltip>
       </Group>
@@ -108,47 +126,40 @@ export default function McpSettings() {
           </Group>
           <Text size="sm" c="dimmed" mt="xs">
             {t(
-              "Use your API key for authentication. You can manage API keys in your account settings.",
+              "Use a dedicated MCP token for authentication. Normal API keys and browser sessions are not accepted by this endpoint.",
             )}
           </Text>
 
+          <Text size="sm" fw={500} mt="md" mb={4}>
+            {t("Client auth header")}
+          </Text>
+          <TextInput
+            value="Authorization: Bearer <MCP token>"
+            readOnly
+            style={{ flex: 1 }}
+          />
+
           <div>
             <Text size="sm" fw={500} mt="md" mb={4}>
-              {t("Supported tools")}
+              {t("Read-only tools")}
             </Text>
             <List size="sm" spacing={2}>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  search_pages, get_page, create_page, update_page
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  list_pages, list_child_pages, duplicate_page
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  copy_page_to_space, move_page, move_page_to_space
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  get_space, list_spaces, create_space, update_space
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  get_comments, create_comment, update_comment
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" c="dimmed" span>
-                  search_attachments, list_workspace_members, get_current_user
-                </Text>
-              </List.Item>
+              {MCP_READONLY_TOOLS.map((tool) => (
+                <List.Item key={tool}>
+                  <Text size="sm" c="dimmed" span ff="monospace">
+                    {tool}
+                  </Text>
+                </List.Item>
+              ))}
             </List>
           </div>
+
+          <Divider my="lg" />
+
+          <Text size="md" mb="xs">
+            {t("MCP tokens")}
+          </Text>
+          <McpTokenManager adminView disabled={!serverEnabled || !checked} />
         </div>
       )}
     </Stack>

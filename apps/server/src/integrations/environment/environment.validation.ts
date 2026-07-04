@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsNotIn,
   IsOptional,
+  IsNumberString,
   IsString,
   IsUrl,
   MinLength,
@@ -170,6 +171,23 @@ export class EnvironmentVariables {
     },
   )
   CLICKHOUSE_URL: string;
+
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  @IsString()
+  MCP_SERVER_ENABLED: string;
+
+  @IsOptional()
+  @IsNumberString()
+  MCP_RATE_LIMIT_PER_MINUTE: string;
+
+  @IsOptional()
+  @IsNumberString()
+  MCP_MAX_SEARCH_RESULTS: string;
+
+  @IsOptional()
+  @IsNumberString()
+  MCP_MAX_PAGE_CHARS: string;
 }
 
 export function validate(config: Record<string, any>) {

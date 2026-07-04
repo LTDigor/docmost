@@ -335,6 +335,34 @@ export class EnvironmentService {
       .toLowerCase();
   }
 
+  isMcpServerEnabled(): boolean {
+    return (
+      this.configService.get<string>('MCP_SERVER_ENABLED', 'false').toLowerCase() ===
+      'true'
+    );
+  }
+
+  getMcpRateLimitPerMinute(): number {
+    return parseInt(
+      this.configService.get<string>('MCP_RATE_LIMIT_PER_MINUTE', '60'),
+      10,
+    );
+  }
+
+  getMcpMaxSearchResults(): number {
+    return parseInt(
+      this.configService.get<string>('MCP_MAX_SEARCH_RESULTS', '10'),
+      10,
+    );
+  }
+
+  getMcpMaxPageChars(): number {
+    return parseInt(
+      this.configService.get<string>('MCP_MAX_PAGE_CHARS', '80000'),
+      10,
+    );
+  }
+
   getClickHouseUrl(): string {
     return this.configService.get<string>('CLICKHOUSE_URL');
   }

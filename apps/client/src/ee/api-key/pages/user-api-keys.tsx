@@ -1,10 +1,18 @@
 import React, { useState } from "react";
-import { Anchor, Alert, Button, Group, Space, Text } from "@mantine/core";
+import {
+  Anchor,
+  Alert,
+  Button,
+  Divider,
+  Group,
+  Space,
+  Text,
+} from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Helmet } from "react-helmet-async";
 import { Trans, useTranslation } from "react-i18next";
 import SettingsTitle from "@/components/settings/settings-title";
-import { getAppName, getAppUrl } from "@/lib/config";
+import { getAppName } from "@/lib/config";
 import { ApiKeyTable } from "@/ee/api-key/components/api-key-table";
 import { CreateApiKeyModal } from "@/ee/api-key/components/create-api-key-modal";
 import { ApiKeyCreatedModal } from "@/ee/api-key/components/api-key-created-modal";
@@ -17,6 +25,7 @@ import { IApiKey } from "@/ee/api-key";
 import { useAtom } from "jotai";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
 import useUserRole from "@/hooks/use-user-role.tsx";
+import { McpTokenManager } from "@/ee/mcp/components/mcp-token-manager";
 
 export default function UserApiKeys() {
   const { t } = useTranslation();
@@ -61,33 +70,16 @@ export default function UserApiKeys() {
         <Trans
           i18nKey="View the <anchor>API documentation</anchor> for usage details."
           components={{
-            anchor: <Anchor href="https://docmost.com/api-docs" target="_blank" size="sm" />,
+            anchor: (
+              <Anchor
+                href="https://docmost.com/api-docs"
+                target="_blank"
+                size="sm"
+              />
+            ),
           }}
         />
       </Text>
-
-      {mcpEnabled && canCreate && (
-        <Alert variant="light" color="blue" mb="md" p="sm" icon={<IconInfoCircle />}>
-          <Text size="sm">
-            {t(
-              "Your workspace has MCP enabled. Use your API key to connect AI assistants.",
-            )}{" "}
-            <Anchor
-              href="https://docmost.com/docs/user-guide/mcp"
-              target="_blank"
-              size="sm"
-            >
-              {t("Learn more")}
-            </Anchor>
-          </Text>
-          <Text size="sm" mt={4}>
-            {t("MCP server URL:")}{" "}
-            <Text size="sm" fw={500} span ff="monospace">
-              {`${getAppUrl()}/mcp`}
-            </Text>
-          </Text>
-        </Alert>
-      )}
 
       {canCreate ? (
         <Group justify="flex-end" mb="md">
@@ -96,9 +88,17 @@ export default function UserApiKeys() {
           </Button>
         </Group>
       ) : restrictToAdmins ? (
-        <Alert variant="light" color="yellow" mb="md" p="sm" icon={<IconInfoCircle />}>
+        <Alert
+          variant="light"
+          color="yellow"
+          mb="md"
+          p="sm"
+          icon={<IconInfoCircle />}
+        >
           <Text size="sm">
-            {t("API key creation is restricted to admins by your workspace administrator.")}
+            {t(
+              "API key creation is restricted to admins by your workspace administrator.",
+            )}
           </Text>
         </Alert>
       ) : null}
@@ -119,6 +119,16 @@ export default function UserApiKeys() {
           onNext={() => goNext(data?.meta?.nextCursor)}
           onPrev={goPrev}
         />
+      )}
+
+      {mcpEnabled && (
+        <>
+          <Divider my="lg" />
+          <Text size="md" mb="xs">
+            {t("MCP tokens")}
+          </Text>
+          <McpTokenManager />
+        </>
       )}
 
       <CreateApiKeyModal

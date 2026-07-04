@@ -1,4 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
+
+vi.hoisted(() => {
+  Object.defineProperty(globalThis, "localStorage", {
+    value: {
+      getItem: () => null,
+      setItem: () => undefined,
+    },
+    configurable: true,
+  });
+});
+
 import {
   filterSettingsNavigationGroups,
   type SettingsNavigationGroup,
@@ -16,7 +27,9 @@ const Icon = () => null;
 const groups: SettingsNavigationGroup[] = [
   {
     heading: "Account",
-    items: [{ label: "Profile", icon: Icon, path: "/settings/account/profile" }],
+    items: [
+      { label: "Profile", icon: Icon, path: "/settings/account/profile" },
+    ],
   },
   {
     heading: "Workspace",
@@ -78,7 +91,9 @@ describe("filterSettingsNavigationGroups", () => {
   });
 
   it("keeps Security & SSO visible to admins without a paid feature gate", () => {
-    const workspaceGroup = groupedData.find((group) => group.heading === "Workspace");
+    const workspaceGroup = groupedData.find(
+      (group) => group.heading === "Workspace",
+    );
     const securityItem = workspaceGroup?.items.find(
       (item) => item.label === "Security & SSO",
     );

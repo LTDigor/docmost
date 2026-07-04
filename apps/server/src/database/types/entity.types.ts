@@ -37,6 +37,7 @@ import {
   Watchers,
   Audit as _Audit,
   Templates,
+  McpAccessTokens,
 } from './db';
 import { PageEmbeddings } from '@docmost/db/types/embeddings.types';
 
@@ -175,6 +176,13 @@ export type UpdatableUserMFA = Updateable<Omit<_UserMFA, 'id'>>;
 export type ApiKey = Selectable<ApiKeys>;
 export type InsertableApiKey = Insertable<ApiKeys>;
 export type UpdatableApiKey = Updateable<Omit<ApiKeys, 'id'>>;
+
+// MCP Access Tokens
+export type McpAccessToken = Selectable<McpAccessTokens>;
+export type InsertableMcpAccessToken = Insertable<McpAccessTokens>;
+export type UpdatableMcpAccessToken = Updateable<
+  Omit<McpAccessTokens, 'id'>
+>;
 
 // Scim Tokens
 export type ScimToken = Selectable<ScimTokens>;
