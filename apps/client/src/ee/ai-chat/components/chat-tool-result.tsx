@@ -7,6 +7,9 @@ export const TOOL_LABELS: Record<string, string> = {
   list_spaces: "Listed spaces",
   search_pages: "Searched pages",
   get_page: "Read page",
+  list_child_pages: "Listed child pages",
+  get_relevant_context: "Retrieved context",
+  get_mcp_context: "Checked MCP context",
   create_page: "Created page",
   update_page: "Updated page",
 };

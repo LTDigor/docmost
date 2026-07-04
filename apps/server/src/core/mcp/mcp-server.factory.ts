@@ -75,6 +75,23 @@ export class McpServerFactory {
     );
 
     server.registerTool(
+      'get_relevant_context',
+      {
+        title: 'Get relevant context',
+        description:
+          'Search visible Docmost pages and return a compact Markdown context bundle.',
+        inputSchema: {
+          query: z.string().min(1),
+          spaceId: z.string().uuid().optional(),
+          limit: z.number().int().min(1).max(20).optional(),
+          maxChars: z.number().int().min(1000).max(80000).optional(),
+        },
+        annotations: readOnlyAnnotations,
+      },
+      (input) => this.toolService.getRelevantContext(input, context),
+    );
+
+    server.registerTool(
       'get_mcp_context',
       {
         title: 'Get MCP context',

@@ -8,6 +8,7 @@ describe("MCP readonly tool list", () => {
       "get_page",
       "list_spaces",
       "list_child_pages",
+      "get_relevant_context",
       "get_mcp_context",
     ]);
 

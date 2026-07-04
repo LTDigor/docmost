@@ -36,6 +36,7 @@ export class McpToolService {
     context: McpRequestContext,
   ): Promise<CallToolResult> {
     const limit = this.clampLimit(input.limit);
+    const query = this.normalizeQuery(input.query);
 
     if (input.spaceId) {
       await this.assertVisibleSpace(input.spaceId, context);
@@ -43,7 +44,7 @@ export class McpToolService {
 
     const result = await this.searchService.searchPage(
       {
-        query: input.query,
+        query,
         spaceId: input.spaceId,
         limit,
         offset: 0,
@@ -51,23 +52,14 @@ export class McpToolService {
       { userId: context.user.id, workspaceId: context.workspace.id },
     );
 
-    const scopedItems = result.items
-      .filter((item: any) => this.isSpaceInTokenScope(item.space?.id, context))
-      .slice(0, limit)
-      .map((item: any) => ({
-        pageId: item.id,
-        title: item.title,
-        excerpt: this.serializer.stripHtml(item.highlight),
-        space: item.space
-          ? {
-              id: item.space.id,
-              name: item.space.name,
-              slug: item.space.slug,
-            }
-          : undefined,
-        sourceUrl: this.serializer.buildPageUrl(item),
-        updatedAt: item.updatedAt,
-      }));
+    const scopedItems = await this.enrichSearchItems(
+      result.items
+        .filter((item: any) =>
+          this.isSpaceInTokenScope(item.space?.id, context),
+        )
+        .slice(0, limit),
+      context,
+    );
 
     await this.auditService.log({
       workspaceId: context.workspace.id,
@@ -80,7 +72,7 @@ export class McpToolService {
       metadata: {
         tool: 'search_pages',
         resultCount: scopedItems.length,
-        queryPreview: input.query.slice(0, 120),
+        queryPreview: query.slice(0, 120),
       },
       ipAddress: context.ipAddress,
     });
@@ -97,6 +89,81 @@ export class McpToolService {
             .join('\n\n')
         : 'No matching pages found.',
       { items: scopedItems },
+    );
+  }
+
+  async getRelevantContext(
+    input: {
+      query: string;
+      spaceId?: string;
+      limit?: number;
+      maxChars?: number;
+    },
+    context: McpRequestContext,
+  ): Promise<CallToolResult> {
+    const query = this.normalizeQuery(input.query);
+    const maxChars = this.clampContextChars(input.maxChars);
+    const searchResult = await this.searchPages(
+      { query, spaceId: input.spaceId, limit: input.limit },
+      context,
+    );
+    const searchItems = (searchResult.structuredContent as any).items ?? [];
+    const items: any[] = [];
+    const sections = [`Relevant Docmost context for: ${query}`];
+    let remainingChars = maxChars;
+
+    for (const searchItem of searchItems) {
+      if (remainingChars <= 0) break;
+
+      const page = await this.findReadablePage(searchItem.pageId, context);
+      const markdown = this.serializer.serializePageContent(
+        (page as any).content,
+      );
+      const content = this.takeChars(markdown, remainingChars);
+      remainingChars = Math.max(remainingChars - content.length, 0);
+
+      const item = {
+        ...searchItem,
+        content,
+      };
+      items.push(item);
+
+      sections.push(
+        [
+          `## ${searchItem.title}`,
+          `Source: ${searchItem.sourceUrl}`,
+          searchItem.breadcrumbs?.length
+            ? `Breadcrumbs: ${searchItem.breadcrumbs.join(' > ')}`
+            : undefined,
+          content,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      );
+    }
+
+    await this.auditService.log({
+      workspaceId: context.workspace.id,
+      actorId: context.token.id,
+      actorType: 'mcp_token',
+      event: AuditEvent.MCP_CONTEXT_READ,
+      resourceType: AuditResource.MCP_TOKEN,
+      resourceId: context.token.id,
+      spaceId: input.spaceId,
+      metadata: {
+        tool: 'get_relevant_context',
+        sourcePageCount: items.length,
+        queryPreview: query.slice(0, 120),
+        maxChars,
+      },
+      ipAddress: context.ipAddress,
+    });
+
+    return this.result(
+      items.length
+        ? sections.join('\n\n---\n\n')
+        : `No relevant Docmost context found for: ${query}`,
+      { query, items },
     );
   }
 
@@ -258,6 +325,98 @@ export class McpToolService {
     const max = this.environmentService.getMcpMaxSearchResults();
     if (!limit) return max;
     return Math.min(Math.max(limit, 1), max);
+  }
+
+  private clampContextChars(maxChars?: number): number {
+    const max = this.environmentService.getMcpMaxPageChars();
+    if (!maxChars) return max;
+    return Math.min(Math.max(maxChars, 1000), max);
+  }
+
+  private normalizeQuery(query: string): string {
+    return query.trim().replace(/\s+/g, ' ');
+  }
+
+  private takeChars(markdown: string, maxChars: number): string {
+    if (markdown.length <= maxChars) return markdown;
+    return `${markdown.slice(0, maxChars).trimEnd()}\n\n[Context truncated]`;
+  }
+
+  private async enrichSearchItems(
+    items: any[],
+    context: McpRequestContext,
+  ): Promise<any[]> {
+    return Promise.all(
+      items.map(async (item: any) => {
+        const parent = await this.findVisibleParent(item.parentPageId, context);
+        const breadcrumbs = [
+          item.space?.name,
+          parent?.title,
+          item.title,
+        ].filter(Boolean);
+
+        return {
+          pageId: item.id,
+          title: item.title,
+          parentPageId: item.parentPageId,
+          parentTitle: parent?.title,
+          breadcrumbs,
+          excerpt: this.serializer.stripHtml(item.highlight),
+          space: item.space
+            ? {
+                id: item.space.id,
+                name: item.space.name,
+                slug: item.space.slug,
+              }
+            : undefined,
+          sourceUrl: this.serializer.buildPageUrl(item),
+          updatedAt: item.updatedAt,
+        };
+      }),
+    );
+  }
+
+  private async findVisibleParent(
+    parentPageId: string | null | undefined,
+    context: McpRequestContext,
+  ): Promise<any | undefined> {
+    if (!parentPageId) return undefined;
+
+    try {
+      const parent = await this.pageRepo.findById(parentPageId, {
+        includeSpace: true,
+      });
+      if (
+        !parent ||
+        parent.deletedAt ||
+        parent.workspaceId !== context.workspace.id
+      ) {
+        return undefined;
+      }
+      this.assertTokenSpaceScope(parent.spaceId, context);
+      await this.pageAccessService.validateCanView(parent, context.user);
+      return parent;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async findReadablePage(
+    pageId: string,
+    context: McpRequestContext,
+  ): Promise<any> {
+    const page = await this.pageRepo.findById(pageId, {
+      includeContent: true,
+      includeSpace: true,
+    });
+
+    if (!page || page.deletedAt || page.workspaceId !== context.workspace.id) {
+      throw new NotFoundException('Page not found');
+    }
+
+    this.assertTokenSpaceScope(page.spaceId, context);
+    await this.pageAccessService.validateCanView(page, context.user);
+    return page;
   }
 
   private async assertVisibleSpace(

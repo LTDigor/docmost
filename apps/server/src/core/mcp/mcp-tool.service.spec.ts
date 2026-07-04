@@ -35,6 +35,7 @@ describe('McpToolService', () => {
             id: 'page-1',
             slugId: 'abc123',
             title: 'Employment guide',
+            parentPageId: 'parent-1',
             highlight: '<b>Interview</b> steps',
             updatedAt: '2026-07-01T00:00:00.000Z',
             space: { id: 'space-1', name: 'HR', slug: 'hr' },
@@ -51,16 +52,33 @@ describe('McpToolService', () => {
       }),
     };
     const pageRepo = {
-      findById: jest.fn().mockResolvedValue({
-        id: 'page-1',
-        title: 'Employment guide',
-        slugId: 'abc123',
-        spaceId: 'space-1',
-        workspaceId: 'workspace-1',
-        deletedAt: null,
-        updatedAt: '2026-07-01T00:00:00.000Z',
-        content: '## Steps\n\n- Prepare CV',
-        space: { id: 'space-1', name: 'HR', slug: 'hr' },
+      findById: jest.fn().mockImplementation((pageId: string) => {
+        if (pageId === 'parent-1') {
+          return Promise.resolve({
+            id: 'parent-1',
+            title: 'Hiring',
+            slugId: 'hiring',
+            spaceId: 'space-1',
+            workspaceId: 'workspace-1',
+            deletedAt: null,
+            updatedAt: '2026-06-30T00:00:00.000Z',
+            space: { id: 'space-1', name: 'HR', slug: 'hr' },
+          });
+        }
+
+        return Promise.resolve({
+          id: 'page-1',
+          title: 'Employment guide',
+          slugId: 'abc123',
+          parentPageId: 'parent-1',
+          spaceId: 'space-1',
+          workspaceId: 'workspace-1',
+          deletedAt: null,
+          updatedAt: '2026-07-01T00:00:00.000Z',
+          content:
+            '## Steps\n\n- Prepare CV\n\n## Interview\n\nAsk focused questions.',
+          space: { id: 'space-1', name: 'HR', slug: 'hr' },
+        });
       }),
     };
     const pageAccessService = {
@@ -131,17 +149,24 @@ describe('McpToolService', () => {
     return result.content[0].text;
   }
 
-  it('searches visible pages, strips HTML excerpts, and applies token space scope', async () => {
-    const { service, auditService } = makeService();
+  it('searches visible pages with normalized query, source metadata, and token space scope', async () => {
+    const { service, searchService, auditService } = makeService();
 
     const result = await service.searchPages(
-      { query: 'interview', limit: 10 },
+      { query: '  interview   steps  ', limit: 10 },
       context,
     );
 
+    expect(searchService.searchPage).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'interview steps' }),
+      expect.anything(),
+    );
     expect(result.structuredContent.items).toEqual([
       expect.objectContaining({
         pageId: 'page-1',
+        parentPageId: 'parent-1',
+        parentTitle: 'Hiring',
+        breadcrumbs: ['HR', 'Hiring', 'Employment guide'],
         excerpt: 'Interview steps',
         sourceUrl: 'https://docmost.offercore.ru/s/hr/p/abc123',
       }),
@@ -152,6 +177,45 @@ describe('McpToolService', () => {
       expect.objectContaining({
         event: AuditEvent.MCP_SEARCH,
         metadata: expect.objectContaining({ resultCount: 1 }),
+      }),
+    );
+  });
+
+  it('builds a compact relevant context bundle from visible search results', async () => {
+    const { service, pageRepo, pageAccessService, auditService } =
+      makeService();
+
+    const result = await service.getRelevantContext(
+      { query: 'interview', limit: 3, maxChars: 2000 },
+      context,
+    );
+
+    expect(pageRepo.findById).toHaveBeenCalledWith('page-1', {
+      includeContent: true,
+      includeSpace: true,
+    });
+    expect(pageAccessService.validateCanView).toHaveBeenCalled();
+    expect(textOf(result)).toContain('Relevant Docmost context for: interview');
+    expect(textOf(result)).toContain('## Employment guide');
+    expect(textOf(result)).toContain(
+      'Breadcrumbs: HR > Hiring > Employment guide',
+    );
+    expect(textOf(result)).toContain('Ask focused questions.');
+    expect(result.structuredContent.items).toEqual([
+      expect.objectContaining({
+        pageId: 'page-1',
+        title: 'Employment guide',
+        breadcrumbs: ['HR', 'Hiring', 'Employment guide'],
+        content: expect.stringContaining('Prepare CV'),
+      }),
+    ]);
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: AuditEvent.MCP_CONTEXT_READ,
+        metadata: expect.objectContaining({
+          tool: 'get_relevant_context',
+          sourcePageCount: 1,
+        }),
       }),
     );
   });

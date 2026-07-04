@@ -28,6 +28,7 @@ export const AuditEvent = {
   MCP_TOKEN_REVOKED: 'mcp.token_revoked',
   MCP_SEARCH: 'mcp.search',
   MCP_PAGE_READ: 'mcp.page_read',
+  MCP_CONTEXT_READ: 'mcp.context_read',
   MCP_AUTH_FAILED: 'mcp.auth_failed',
   MCP_RATE_LIMITED: 'mcp.rate_limited',
 
@@ -119,7 +120,7 @@ export const EXCLUDED_AUDIT_EVENTS: Set<string> = new Set([
   AuditEvent.COMMENT_UPDATED,
   AuditEvent.COMMENT_RESOLVED,
   AuditEvent.COMMENT_REOPENED,
-  AuditEvent.ATTACHMENT_UPLOADED
+  AuditEvent.ATTACHMENT_UPLOADED,
 ]);
 
 export const AuditResource = {
